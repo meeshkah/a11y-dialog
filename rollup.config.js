@@ -10,7 +10,7 @@ const plugins = [nodeResolve(), typescript({ tsconfig: './tsconfig.json' })]
 
 const minify = terser({
   format: {
-    preamble: `/*! a11y-dialog ${pkg.version} — © Kitty Giraudel */`,
+    preamble: `/*! a11y-dialog ${pkg.version} — © Kitty Giraudel, with added animations support by Misha Rumbesht */`,
   },
 })
 

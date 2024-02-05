@@ -51,14 +51,26 @@
   }
 }
 
-.dialog-overlay {
+.is-opening .dialog-overlay {
   animation: fade-in 200ms both;
 }
 
-.dialog-content {
+.is-closing .dialog-overlay {
+  animation: fade-in 400ms both;
+  animation-direction: reverse;
+}
+
+.is-opening .dialog-content {
   animation:
     fade-in 400ms 200ms both,
     slide-up 400ms 200ms both;
+}
+
+.is-closing .dialog-content {
+  animation:
+    fade-in 200ms 100ms both,
+    slide-up 200ms 100ms both;
+  animation-direction: reverse;
 }
 
 .dialog-content {

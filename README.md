@@ -17,6 +17,12 @@ This is a lightweight (1.4Kb) yet flexible script to create accessible dialog wi
 - Is extensively tested and documented
 - Is fast and tiny
 
+## Additional features
+
+- Awaits for animations (if exist on content container) to complete, and fires `show` or `hide` events
+- Adds `.is-opening` class to main container when dialog is opening, fires `opening` event
+- Adds `.is-closing` class to main container when dialog is closing, fires `closing` event
+
 ## Contributing
 
 Contributing guidelines can be found in [CONTRIBUTING.md](https://github.com/KittyGiraudel/a11y-dialog/blob/main/CONTRIBUTING.md)

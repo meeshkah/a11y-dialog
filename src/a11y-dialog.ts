@@ -1,10 +1,16 @@
 import { getActiveElement, moveFocusToDialog, trapTabKey } from './dom-utils'
 
-export type A11yDialogEvent = 'show' | 'hide' | 'destroy'
+export type A11yDialogEvent =
+  | 'show'
+  | 'hide'
+  | 'destroy'
+  | 'opening'
+  | 'closing'
 export type A11yDialogInstance = InstanceType<typeof A11yDialog>
 
 export default class A11yDialog {
   private $el: HTMLElement
+  private $contentEl: HTMLElement
   private id: string
   private previouslyFocused: HTMLElement | null
 
@@ -12,6 +18,7 @@ export default class A11yDialog {
 
   constructor(element: HTMLElement) {
     this.$el = element
+    this.$contentEl = this.$el.querySelector('[role="document"]') as HTMLElement
     this.id = this.$el.getAttribute('data-a11y-dialog') || this.$el.id
     this.previouslyFocused = null
     this.shown = false
@@ -67,6 +74,11 @@ export default class A11yDialog {
     // it later
     this.shown = true
     this.$el.removeAttribute('aria-hidden')
+    this.$el.classList.add('is-opening')
+
+    // Dispatch a `opening` event
+    this.fire('opening', event)
+
     this.previouslyFocused = getActiveElement() as HTMLElement
 
     // Due to a long lasting bug in Safari, clicking an interactive element
@@ -94,8 +106,21 @@ export default class A11yDialog {
     document.body.addEventListener('focus', this.maintainFocus, true)
     this.$el.addEventListener('keydown', this.bindKeypress, true)
 
-    // Dispatch a `show` event
-    this.fire('show', event)
+    const animations = this.$contentEl.getAnimations()
+
+    if (animations.length > 0) {
+      Promise.all(animations.map(animation => animation.finished)).then(() => {
+        this.$el.classList.remove('is-opening')
+
+        // Dispatch a `show` event
+        this.fire('show', event)
+      })
+    } else {
+      this.$el.classList.remove('is-opening')
+
+      // Dispatch a `show` event
+      this.fire('show', event)
+    }
 
     return this
   }
@@ -109,17 +134,38 @@ export default class A11yDialog {
     // If the dialog is already closed, abort
     if (!this.shown) return this
 
-    this.shown = false
-    this.$el.setAttribute('aria-hidden', 'true')
-    this.previouslyFocused?.focus?.()
+    const setAsClosed = () => {
+      this.shown = false
+      this.$el.setAttribute('aria-hidden', 'true')
+      this.previouslyFocused?.focus?.()
 
-    // Remove the focus event listener to the body element and stop listening
-    // for specific key presses
-    document.body.removeEventListener('focus', this.maintainFocus, true)
-    this.$el.removeEventListener('keydown', this.bindKeypress, true)
+      // Remove the focus event listener to the body element and stop listening
+      // for specific key presses
+      document.body.removeEventListener('focus', this.maintainFocus, true)
+      this.$el.removeEventListener('keydown', this.bindKeypress, true)
 
-    // Dispatch a `hide` event
-    this.fire('hide', event)
+      // Dispatch a `hide` event
+      this.fire('hide', event)
+    }
+
+    this.$el.classList.add('is-closing')
+
+    // Dispatch a `closing` event
+    this.fire('closing', event)
+
+    const animations = this.$contentEl.getAnimations()
+
+    if (animations.length > 0) {
+      Promise.all(animations.map(animation => animation.finished)).then(() => {
+        this.$el.classList.remove('is-closing')
+
+        setAsClosed()
+      })
+    } else {
+      this.$el.classList.remove('is-closing')
+
+      setAsClosed()
+    }
 
     return this
   }
