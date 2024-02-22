@@ -28,7 +28,7 @@
     "serve": "npx serve cypress/fixtures -p 5001",
     "test": "cypress run --browser chrome",
     "size": "./size.sh",
-    "prepare": "husky install"
+    "prepare": "husky install && npm run build"
   },
   "lint-staged": {
     "*.{js,ts}": [
