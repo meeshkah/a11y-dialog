@@ -81,30 +81,32 @@ export default class A11yDialog {
 
     this.previouslyFocused = getActiveElement() as HTMLElement
 
-    // Due to a long lasting bug in Safari, clicking an interactive element
-    // (like a <button>) does *not* move the focus to that element, which means
-    // `document.activeElement` is whatever element is currently focused (like
-    // an <input>), or the <body> element otherwise. We can work around that
-    // problem by checking whether the focused element is the <body>, and if it,
-    // store the click event target.
-    // See: https://bugs.webkit.org/show_bug.cgi?id=22261
-    if (this.previouslyFocused?.tagName === 'BODY' && event?.target) {
-      this.previouslyFocused = event.target as HTMLElement
-    }
+    if (!this.$el.hasAttribute('data-a11y-no-focus-trap')) {
+      // Due to a long lasting bug in Safari, clicking an interactive element
+      // (like a <button>) does *not* move the focus to that element, which means
+      // `document.activeElement` is whatever element is currently focused (like
+      // an <input>), or the <body> element otherwise. We can work around that
+      // problem by checking whether the focused element is the <body>, and if it,
+      // store the click event target.
+      // See: https://bugs.webkit.org/show_bug.cgi?id=22261
+      if (this.previouslyFocused?.tagName === 'BODY' && event?.target) {
+        this.previouslyFocused = event.target as HTMLElement
+      }
 
-    // Set the focus to the dialog element
-    // See: https://github.com/KittyGiraudel/a11y-dialog/pull/583
-    if (event?.type === 'focus') {
-      this.maintainFocus(event as FocusEvent)
-    } else {
-      moveFocusToDialog(this.$el)
-    }
+      // Set the focus to the dialog element
+      // See: https://github.com/KittyGiraudel/a11y-dialog/pull/583
+      if (event?.type === 'focus') {
+        this.maintainFocus(event as FocusEvent)
+      } else {
+        moveFocusToDialog(this.$el)
+      }
 
-    // Bind a focus event listener to the body element to make sure the focus
-    // stays trapped inside the dialog while open, and start listening for some
-    // specific key presses (TAB and ESC)
-    document.body.addEventListener('focus', this.maintainFocus, true)
-    this.$el.addEventListener('keydown', this.bindKeypress, true)
+      // Bind a focus event listener to the body element to make sure the focus
+      // stays trapped inside the dialog while open, and start listening for some
+      // specific key presses (TAB and ESC)
+      document.body.addEventListener('focus', this.maintainFocus, true)
+      this.$el.addEventListener('keydown', this.bindKeypress, true)
+    }
 
     const animations = this.$contentEl.getAnimations()
 
@@ -137,12 +139,15 @@ export default class A11yDialog {
     const setAsClosed = () => {
       this.shown = false
       this.$el.setAttribute('aria-hidden', 'true')
-      this.previouslyFocused?.focus?.()
 
-      // Remove the focus event listener to the body element and stop listening
-      // for specific key presses
-      document.body.removeEventListener('focus', this.maintainFocus, true)
-      this.$el.removeEventListener('keydown', this.bindKeypress, true)
+      if (!this.$el.hasAttribute('data-a11y-no-focus-trap')) {
+        this.previouslyFocused?.focus?.()
+
+        // Remove the focus event listener to the body element and stop listening
+        // for specific key presses
+        document.body.removeEventListener('focus', this.maintainFocus, true)
+        this.$el.removeEventListener('keydown', this.bindKeypress, true)
+      }
 
       // Dispatch a `hide` event
       this.fire('hide', event)
