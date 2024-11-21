@@ -81,7 +81,7 @@ export default class A11yDialog {
 
     this.previouslyFocused = getActiveElement() as HTMLElement
 
-    if (!this.$el.hasAttribute('data-a11y-no-focus-trap')) {
+    if (!this.$el.hasAttribute('data-a11y-dialog-no-focus-trap')) {
       // Due to a long lasting bug in Safari, clicking an interactive element
       // (like a <button>) does *not* move the focus to that element, which means
       // `document.activeElement` is whatever element is currently focused (like
@@ -140,7 +140,7 @@ export default class A11yDialog {
       this.shown = false
       this.$el.setAttribute('aria-hidden', 'true')
 
-      if (!this.$el.hasAttribute('data-a11y-no-focus-trap')) {
+      if (!this.$el.hasAttribute('data-a11y-dialog-no-focus-trap')) {
         this.previouslyFocused?.focus?.()
 
         // Remove the focus event listener to the body element and stop listening
